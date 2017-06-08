@@ -1,0 +1,132 @@
+---
+- name: Desymfony Virtual Machine is ready
+  hosts: all
+  sudo: yes
+  tasks:
+    - name: APT | Ensure sources are signed
+      apt_key: url={{ item }} state=present
+      with_items:
+        - http://www.dotdeb.org/dotdeb.gpg
+
+    - name: APT | Ensure sources are installed
+      apt_repository: repo='{{ item.archive_type }} {{ item.repository_url }} {{ item.distribution }} {{ item.components }}' state=present
+      with_items:
+        - { archive_type: "deb",     repository_url: "http://packages.dotdeb.org", distribution: "wheezy",       components: "all" }
+        - { archive_type: "deb-src", repository_url: "http://packages.dotdeb.org", distribution: "wheezy",       components: "all" }
+        - { archive_type: "deb",     repository_url: "http://packages.dotdeb.org", distribution: "wheezy-php56", components: "all" }
+        - { archive_type: "deb-src", repository_url: "http://packages.dotdeb.org", distribution: "wheezy-php56", components: "all" }
+
+    - name: APT | Ensure system is updated
+      apt: upgrade=dist
+
+    - name: APT | Ensure all packages are updated
+      apt: update_cache=yes
+
+    - name: APT | Ensure locales are installed
+      apt: name=locales-all state=present
+
+    - name: APT | Ensure base packages are installed
+      apt: name={{ item }} state=latest
+      with_items:
+        - vim
+        - build-essential
+        - gettext
+        - pslib1
+        - pslib-dev
+        - re2c
+        - pkg-config
+        - redis-server
+        - apache2
+        - apache2-mpm-prefork
+        - php5
+        - php5-dev
+        - php-pear
+        - php5-curl
+        - php5-gd
+        - php5-tidy
+        - php5-imagick
+        - php5-msgpack
+        - php5-cli
+        - php5-apcu
+        - php5-mcrypt
+        - mysql-client
+        - mysql-server
+        - php5-mysql
+        - unzip
+        - python-mysqldb
+
+    - name: PHP | Installing XDEBUG
+      shell: "pecl install -f xdebug"
+
+    - name: PHP | Ensure PHP configuration is set up properly
+      ini_file: dest=/etc/php5/{{ item[0] }}/php.ini section=PHP option={{ item[1].option }} value={{ item[1].value }}
+      with_nested:
+        - [ "apache2", "cli" ]
+        - [
+          { option: "memory_limit", value: "128M" },
+          { option: "date.timezone", value: "Europe/Madrid" },
+          { option: "default_charset", value: "iso-8859-1" }
+        ]
+
+    - name: PHP | Fetch PHP extension dir
+      shell: "php -i | grep -i '^extension_dir' | awk '{print $3}'"
+      register: php_extension_dir
+
+    - name: PHP | Ensure PHP modules are set up properly
+      template: src=templates/php/modules/{{ item }}.ini dest=/etc/php5/mods-available/{{ item }}.ini
+      with_items:
+        - xdebug
+        - msgpack
+
+    - name: PHP | Ensure xdebug module is enabled
+      shell: php5enmod xdebug
+
+    - name: ENVIRONMENT | Ensure hosts file is set
+      template: src=templates/environment/hosts dest=/etc/hosts
+
+    - name: APACHE | Ensure is listening on the proper IP
+      template: src=templates/apache/ports.apache.conf dest=/etc/apache2/ports.conf
+
+    - name: APACHE | Ensure Desymfony virtual host file is installed
+      template: src=templates/apache/desymfony.apache.conf dest=/etc/apache2/sites-available/desymfony
+
+    - name: APACHE | Ensure modules are enabled
+      apache2_module: name={{ item }} state=present
+      with_items:
+        - php5
+        - rewrite
+
+    - name: APACHE | Ensure default apache site is disabled
+      shell: a2dissite default
+
+    - name: APACHE | Ensure Desymfony virtual hosts are up
+      shell: a2ensite {{ item }}
+      with_items:
+        - desymfony
+
+    - name: ENVIRONMENT | Ensure log files
+      file: path=/var/logs/vagrant/logs/ state=directory owner=vagrant group=vagrant
+
+    - name: ENVIRONMENT | Ensure log files
+      file: path=/var/logs/vagrant/logs/devel_debug.log owner=vagrant group=vagrant mode=0644 state=touch
+
+    - name: ENVIRONMENT | Ensure services are enabled
+      service: name={{ item }} enabled=yes
+      with_items:
+        - apache2
+        - redis-server
+        - mysql
+
+    - name: ENVIRONMENT | Ensure services are up
+      service: name={{ item }} state=restarted
+      with_items:
+        - apache2
+        - redis-server
+        - mysql
+      ignore_errors: yes
+
+    - name: MySQL | Create Databases
+      mysql_db: name=desymfony state=present
+
+    - mysql_user: name=desymfony password=3tDyMzQ6bBAr2C3Q priv=desymfony.*:ALL state=present
+

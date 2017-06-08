@@ -1,0 +1,11 @@
+/.DS_Store
+/.idea
+/vendor
+/bin/
+/var/bootstrap.php.cache
+/var/cache/*
+/app/config/parameters.yml
+/var/logs/*
+/web/bundles
+/Vagrantfile
+/.vagrant
