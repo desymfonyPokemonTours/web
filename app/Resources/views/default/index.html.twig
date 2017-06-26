@@ -1,20 +1,30 @@
 {% extends 'base.html.twig' %}
 
 {% block body %}
-    <h1>{{ type.name }}</h1>
+<section>
+    <div class="container">
+        <div class="row col-md-12">
+            <h1>{{ type.name }}</h1>
+        </div>
+    </div>
 
-    <h3>Pokemons</h3>
-    {% for pokemon in pokemons %}
-        <div>{{ pokemon.name }}</div>
-    {% endfor %}
 
-    <h3>Routes</h3>
-    {% for route in routes %}
-        <div>{{ route.id }}</div>
-    {% endfor %}
+    <div class="container">
+        <div class="row col-md-12">
+            <h3>Pokemons</h3>
+            {% for pokemon in pokemons %}
+                <div class="col-md-3">{{ pokemon.name }}</div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="row col-md-12">
+            <h3>Routes</h3>
+            {% for route in routes %}
+                <div class="col-md-3">{{ route.id }}</div>
+            {% endfor %}
+        </div>
+    </div>
 {% endblock %}
 
-{% block stylesheets %}
-<style>
-</style>
-{% endblock %}

@@ -13,7 +13,7 @@ class DefaultController extends Controller
      */
     public function indexAction(Request $request)
     {
-        $typeId = 10;
+        $typeId = 1;
 
         $getTypeByIdService = $this->get('desymfony.type.domain.service.get_type_by_id_service');
         $getPokemonsByTypeIdService = $this->get('desymfony.pokemon.domain.service.get_pokemons_by_type_id_service');
