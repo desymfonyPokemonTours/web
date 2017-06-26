@@ -15,6 +15,10 @@ class AppKernel extends Kernel
             new Symfony\Bundle\SwiftmailerBundle\SwiftmailerBundle(),
             new Doctrine\Bundle\DoctrineBundle\DoctrineBundle(),
             new Sensio\Bundle\FrameworkExtraBundle\SensioFrameworkExtraBundle(),
+            new Desymfony\Pokemon\Infrastructure\DependencyInjection\Symfony\PokemonBundle(),
+            new Desymfony\Route\Infrastructure\DependencyInjection\Symfony\RouteBundle(),
+            new Desymfony\Type\Infrastructure\DependencyInjection\Symfony\TypeBundle(),
+            new Desymfony\Doctrine\DesymfonyDoctrineBundle(),
             new AppBundle\AppBundle(),
         ];
 

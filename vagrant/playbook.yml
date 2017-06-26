@@ -130,3 +130,8 @@
 
     - mysql_user: name=desymfony password=3tDyMzQ6bBAr2C3Q priv=desymfony.*:ALL state=present
 
+    - name: MySQL | Copy backup
+      copy: src=templates/mysql/backup.sql dest=/tmp
+
+    - name: MySQL | Import backup
+      mysql_db: state=import name=desymfony target=/tmp/backup.sql
